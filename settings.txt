@@ -1,0 +1,6 @@
+TACACS_PASS = password
+EVI_ROUTER = ssh username@XX.XX.XX.XX
+JUMP_SERVER_IP = @XX.XX.XX.XX
+JUMP_USER = username
+JUMP_PASS = password
+FW_IP = ssh username@@XX.XX.XX.XX
