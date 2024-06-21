@@ -1,0 +1,8 @@
+.idea/vcs.xml
+*settings.txt
+**/settings.txt
+<<<<<<< HEAD
+**/build
+=======
+**/build
+>>>>>>> c1ecdd9d720544fa233f70a5e4aebc6818e94af9
