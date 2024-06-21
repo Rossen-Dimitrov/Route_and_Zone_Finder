@@ -4,4 +4,3 @@ JUMP_SERVER_IP = 138.35.216.65
 JUMP_USER = username
 JUMP_PASS = password
 FW_IP = ssh username@26.191.2.216
-TESTING GIT IGNORE
