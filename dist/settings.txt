@@ -1,6 +1,6 @@
-TACACS_PASS = password
-EVI_ROUTER = ssh username@26.191.15.204
-JUMP_SERVER_IP = 138.35.216.65
-JUMP_USER = username
-JUMP_PASS = password
-FW_IP = ssh username@26.191.2.216
+TACACS_PASS = 'password'
+EVI_ROUTER = 'ssh username@XX.XX.XX.XX'
+JUMP_SERVER_IP = 'XX.XX.XX.XX'
+JUMP_USER = 'username'
+JUMP_PASS = 'password'
+FW_IP = 'ssh username@XX.XX.XX.XX'
