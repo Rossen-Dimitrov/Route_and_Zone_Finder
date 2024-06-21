@@ -1,6 +1,4 @@
 .idea/vcs.xml
-*settings.txt
-**/settings.txt
 **/build
 start_me.spec
 __pycache__
