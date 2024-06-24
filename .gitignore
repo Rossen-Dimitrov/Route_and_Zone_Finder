@@ -1,7 +1,5 @@
 .idea/vcs.xml
 **/build
-*settings.txt
-**/settings.txt
 start_me.spec
 __pycache__
 venv
