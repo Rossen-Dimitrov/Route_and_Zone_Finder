@@ -6,3 +6,5 @@ __pycache__
 venv
 .ideasettings.txt
 dist/settings.txt
+settings.txt
+dist/settings.txt
