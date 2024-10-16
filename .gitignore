@@ -6,3 +6,4 @@ venv
 .ideasettings.txt
 dist/settings.txt
 settings.txt
+test_ips.txt

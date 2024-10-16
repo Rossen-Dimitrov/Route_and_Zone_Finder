@@ -25,7 +25,7 @@ class FireWallCon:
 
         except:
             self.log += (f"Connection !!! FAILED !!!\n"
-                         f"Please check password in settings.py and the\n"
+                         f"Please check password in settings.txt and the\n"
                          f"connectivity to FW {FW_IP}")
             exit()
 

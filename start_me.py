@@ -4,6 +4,10 @@ from firewall_connection import FireWallCon
 from jump_server_connection import JumpServer
 from network_objekt import Network
 from router_connection import RouterCon
+from check_point_hub import DXC_HUB_FW
+import ipaddress
+import sys
+import re
 
 pa_fw_mapping = {
     'Vlan891': 'MSVX-NSX-T-Default',
@@ -24,6 +28,8 @@ bcn_directly_connected_list = []
 sap_networks_list = []
 pa_networks_list = []
 vsx_firewall_list = []
+check_point_hub = []
+valid_ip_list_str = []
 logs = []
 
 
@@ -33,6 +39,8 @@ def start_program():
     global sap_networks_list
     global pa_networks_list
     global vsx_firewall_list
+    global valid_ip_list_str
+    global check_point_hub
     global logs
 
     bcn_networks_list = []
@@ -40,6 +48,8 @@ def start_program():
     sap_networks_list = []
     pa_networks_list = []
     vsx_firewall_list = []
+    valid_ip_list_str = []
+    check_point_hub = []
     logs = []
 
     refresh_log('Starting...')
@@ -56,11 +66,52 @@ def refresh_log(text):
     logs_window.update_idletasks()
 
 
+def check_ip_in_subnets(ip_obj, subnet_dicts):
+    # Loop through each dictionary of subnets
+    for name, subnets in subnet_dicts.items():
+        for subnet in subnets:
+            try:
+                net_obj = ipaddress.ip_network(subnet)
+                if ip_obj in net_obj:
+                    return True, name, net_obj
+            except ValueError as e:
+                refresh_log(str(e))
+    return False, None, None
+
+
 def run_start_program():
     logs_window.delete("1.0", 'end')
     result_window.delete("1.0", 'end')
     ip_entry = ip_list_entry.get('1.0', 'end').strip()
     ip_list = ip_entry.split('\n')
+
+    # checking for correct entry
+
+    all_ip_are_valid = True
+
+    for ip in ip_list:
+        looped_ip = re.split('[-_/]', ip)[0]
+        try:
+            ipaddress.ip_address(looped_ip)
+            valid_ip_list_str.append(looped_ip)
+        except ValueError as e:
+            all_ip_are_valid = False
+            refresh_log(str(e))
+    if not all_ip_are_valid:
+        sys.exit()
+    # Check each valid IP against the subnets
+    for ip in valid_ip_list_str:
+        ip_obj = ipaddress.ip_address(ip)
+        found_in_dxc, dxc_name, net_obj = check_ip_in_subnets(ip_obj, DXC_HUB_FW)
+        if found_in_dxc:
+            network_obj = Network(
+                ip, host_mask=32,
+                network=net_obj.network_address,
+                net_mask=net_obj.netmask,
+                fw_name=dxc_name, zone='N/A')
+            check_point_hub.append(network_obj)
+            valid_ip_list_str.remove(ip)
+
     refresh_log('Connecting to Jump Server')
     jump = JumpServer()
     jump.log = ''
@@ -72,7 +123,7 @@ def run_start_program():
     evi_router.connect()
     refresh_log(evi_router.log)
     refresh_log('Collecting info from EVI Router')
-    for ip in ip_list:
+    for ip in valid_ip_list_str:
         """ Sending commands for each IP Route """
         if len(ip) < 7:
             refresh_log(f"Invalid line: {ip}")
@@ -162,7 +213,12 @@ def run_start_program():
         refresh_log(jump.log)
 
     refresh_log('Task Finished')
-    result_ip_object_list = bcn_networks_list + bcn_directly_connected_list + sap_networks_list + pa_networks_list + vsx_firewall_list
+    result_ip_object_list = (bcn_networks_list
+                             + bcn_directly_connected_list
+                             + sap_networks_list
+                             + pa_networks_list
+                             + vsx_firewall_list
+                             + check_point_hub)
     result_ip_list = [str(obj) for obj in result_ip_object_list]
     result_window.insert('end', '\n'.join(result_ip_list))
 

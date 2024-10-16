@@ -12,21 +12,25 @@ class RouterCon:
         self.jump_connection.write_channel(EVI_ROUTER + '\n')
         time.sleep(1)
         jump_server_output = self.jump_connection.read_channel()
-
         if 'The authenticity of host' in jump_server_output:
             self.jump_connection.write_channel('yes\n')
-
-        if 'assword' in jump_server_output:
-            self.jump_connection.write_channel(TACACS_PASS)
+            time.sleep(1)
+            jump_server_output += self.jump_connection.read_channel()
 
         try:
-            redispatch(self.jump_connection, device_type='hp_comware')
-            self.log += f"Connected to: {self.jump_connection.find_prompt()}"
+            if 'assword' in jump_server_output:
+                self.jump_connection.write_channel(TACACS_PASS + '\n')
+                time.sleep(1)
+                redispatch(self.jump_connection, device_type='hp_comware')
+                self.log += f"Connected to: {self.jump_connection.find_prompt()}\n"
+            else:
+                self.log += "No password prompt detected. Connection might have failed.\n"
+                return None
 
-        except:
+        except Exception as e:
             self.log += (f"Connection !!! FAILED !!!\n"
-                         f"Please check password in settings.py and the\n"
-                         f"connectivity to EVI Router {EVI_ROUTER}")
+                         f"Please check password in settings.txt and the\n"
+                         f"connectivity to EVI Router {EVI_ROUTER}\nError: {str(e)}\n")
             exit()
         return self.jump_connection
 
