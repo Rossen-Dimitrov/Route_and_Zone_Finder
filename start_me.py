@@ -70,6 +70,7 @@ def check_ip_in_subnets(ip_obj, subnet_dicts):
     # Loop through each dictionary of subnets
     for name, subnets in subnet_dicts.items():
         for subnet in subnets:
+            print(f"IP: {ip_obj} - net: {subnet}")
             try:
                 net_obj = ipaddress.ip_network(subnet)
                 if ip_obj in net_obj:
@@ -111,6 +112,8 @@ def run_start_program():
                 fw_name=dxc_name, zone='N/A')
             check_point_hub.append(network_obj)
             valid_ip_list_str.remove(ip)
+    if not valid_ip_list_str:
+        sys.exit()
 
     refresh_log('Connecting to Jump Server')
     jump = JumpServer()
@@ -125,9 +128,9 @@ def run_start_program():
     refresh_log('Collecting info from EVI Router')
     for ip in valid_ip_list_str:
         """ Sending commands for each IP Route """
-        if len(ip) < 7:
-            refresh_log(f"Invalid line: {ip}")
-            continue
+        # if len(ip) < 7:
+        #     refresh_log(f"Invalid line: {ip}")
+        #     continue
         refresh_log("!")
         host_subnet = ip.split('/')
         ip = host_subnet[0]
