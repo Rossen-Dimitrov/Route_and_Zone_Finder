@@ -29,7 +29,8 @@ sap_networks_list = []
 pa_networks_list = []
 vsx_firewall_list = []
 check_point_hub = []
-valid_ip_list_str = []
+valid_ip_list = []
+valid_net_list = []
 logs = []
 
 
@@ -39,7 +40,8 @@ def start_program():
     global sap_networks_list
     global pa_networks_list
     global vsx_firewall_list
-    global valid_ip_list_str
+    global valid_ip_list
+    global valid_net_list
     global check_point_hub
     global logs
 
@@ -48,7 +50,7 @@ def start_program():
     sap_networks_list = []
     pa_networks_list = []
     vsx_firewall_list = []
-    valid_ip_list_str = []
+    valid_ip_list = []
     check_point_hub = []
     logs = []
 
@@ -70,9 +72,8 @@ def check_ip_in_subnets(ip_obj, subnet_dicts):
     # Loop through each dictionary of subnets
     for name, subnets in subnet_dicts.items():
         for subnet in subnets:
-            print(f"IP: {ip_obj} - net: {subnet}")
             try:
-                net_obj = ipaddress.ip_network(subnet)
+                net_obj = ipaddress.IPv4Network(subnet)
                 if ip_obj in net_obj:
                     return True, name, net_obj
             except ValueError as e:
@@ -91,28 +92,45 @@ def run_start_program():
     all_ip_are_valid = True
 
     for ip in ip_list:
-        looped_ip = re.split('[-_/]', ip)[0]
+        ip = re.split('[-_/]', ip)[0]
         try:
-            ipaddress.ip_address(looped_ip)
-            valid_ip_list_str.append(looped_ip)
+            ip = ipaddress.IPv4Address(ip)
+            valid_ip_list.append(ip)
         except ValueError as e:
             all_ip_are_valid = False
             refresh_log(str(e))
     if not all_ip_are_valid:
         sys.exit()
+
     # Check each valid IP against the subnets
-    for ip in valid_ip_list_str:
-        ip_obj = ipaddress.ip_address(ip)
-        found_in_dxc, dxc_name, net_obj = check_ip_in_subnets(ip_obj, DXC_HUB_FW)
-        if found_in_dxc:
-            network_obj = Network(
-                ip, host_mask=32,
-                network=net_obj.network_address,
-                net_mask=net_obj.netmask,
-                fw_name=dxc_name, zone='N/A')
-            check_point_hub.append(network_obj)
-            valid_ip_list_str.remove(ip)
-    if not valid_ip_list_str:
+    if valid_ip_list:
+        hub_control_list = []
+        for ip_obj in valid_ip_list:
+            found_in_dxc, dxc_name, net_obj = check_ip_in_subnets(ip_obj, DXC_HUB_FW)
+            if found_in_dxc:
+                network_obj = Network(
+                    str(ip_obj), host_mask=32,
+                    network=net_obj.network_address,
+                    net_mask=net_obj.netmask,
+                    fw_name=dxc_name, zone='N/A')
+                check_point_hub.append(network_obj)
+                hub_control_list.append(ip_obj)
+        if hub_control_list:
+            for ip_obj in hub_control_list:
+                if ip_obj in valid_ip_list:
+                    valid_ip_list.remove(ip_obj)
+
+    if not valid_ip_list and not valid_net_list:
+        if check_point_hub:
+            refresh_log('Task Finished')
+            result_ip_object_list = (bcn_networks_list
+                                     + bcn_directly_connected_list
+                                     + sap_networks_list
+                                     + pa_networks_list
+                                     + vsx_firewall_list
+                                     + check_point_hub)
+            result_ip_list = [str(obj) for obj in result_ip_object_list]
+            result_window.insert('end', '\n'.join(result_ip_list))
         sys.exit()
 
     refresh_log('Connecting to Jump Server')
@@ -126,19 +144,12 @@ def run_start_program():
     evi_router.connect()
     refresh_log(evi_router.log)
     refresh_log('Collecting info from EVI Router')
-    for ip in valid_ip_list_str:
+    for ip in valid_ip_list:
         """ Sending commands for each IP Route """
-        # if len(ip) < 7:
-        #     refresh_log(f"Invalid line: {ip}")
-        #     continue
         refresh_log("!")
-        host_subnet = ip.split('/')
-        ip = host_subnet[0]
         host_mask = '32'
-        if len(host_subnet) == 2:
-            host_mask = host_subnet[1]
-
-        command = f'display ip routing-table vpn-instance bcn-core {ip}'
+        print(str(ip))
+        command = f'display ip routing-table vpn-instance bcn-core {str(ip)}'
         output = evi_router.send_commands(command).splitlines()
         subnet = output[-1].split()[0]
         try:
