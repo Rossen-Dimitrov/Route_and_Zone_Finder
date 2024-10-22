@@ -4,24 +4,10 @@ from firewall_connection import FireWallCon
 from jump_server_connection import JumpServer
 from network_objekt import Network
 from router_connection import RouterCon
-from check_point_hub import DXC_HUB_FW
+from static_routes_and_firewalls import DXC_HUB_FW, pa_fw_mapping, sap_fw_mapping
 import ipaddress
 import sys
 import re
-
-pa_fw_mapping = {
-    'Vlan891': 'MSVX-NSX-T-Default',
-    'Vlan892': 'MSVX-NSX-T-DMZ',
-    'Vlan894': 'vmpchbi01',
-    'Vlan895': 'vmpcsdcn01',
-    'Vlan896': 'Infra',
-    'Vlan900': 'Sap01',
-}
-sap_fw_mapping = {
-    'Vlan1032': 'DXC-SAP02-FW',
-    'Vlan902': 'MSVX-NSX-T-DMZ',
-    'Vlan2222': 'NSX Default II',
-}
 
 bcn_networks_list = []
 bcn_directly_connected_list = []

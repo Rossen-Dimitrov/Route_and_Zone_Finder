@@ -7,3 +7,4 @@ venv
 dist/settings.txt
 settings.txt
 test_ips.txt
+test*

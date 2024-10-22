@@ -66,3 +66,16 @@ DXC_HUB_FW = {
         "10.135.196.0/22",
     ),
 }
+pa_fw_mapping = {
+    'Vlan891': 'MSVX-NSX-T-Default',
+    'Vlan892': 'MSVX-NSX-T-DMZ',
+    'Vlan894': 'vmpchbi01',
+    'Vlan895': 'vmpcsdcn01',
+    'Vlan896': 'Infra',
+    'Vlan900': 'Sap01',
+}
+sap_fw_mapping = {
+    'Vlan1032': 'DXC-SAP02-FW',
+    'Vlan902': 'MSVX-NSX-T-DMZ',
+    'Vlan2222': 'NSX Default II',
+}
